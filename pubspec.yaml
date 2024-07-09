@@ -2,7 +2,7 @@ name: tech_world_game_server
 description: A shelf_web_socket server for tech_world.
 version: 1.0.0+1
 publish_to: none
-# repository: https://github.com/my_org/my_repo
+repository: https://github.com/enspyrco/tech_world_game_server
 
 environment:
   sdk: ^3.0.0
@@ -12,7 +12,8 @@ dependencies:
   shelf_web_socket: ^2.0.0
   web_socket_channel: ^3.0.0
   tech_world_networking_types:
-    path: ../../interfaces/tech_world_networking_types
+    # path: ../../interfaces/tech_world_networking_types
+    git: https://github.com/enspyrco/tech_world_networking_types
 
 dev_dependencies:
   lints: ^4.0.0

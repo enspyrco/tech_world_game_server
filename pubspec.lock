@@ -305,10 +305,12 @@ packages:
   tech_world_networking_types:
     dependency: "direct main"
     description:
-      path: "../../interfaces/tech_world_networking_types"
-      relative: true
-    source: path
-    version: "0.0.0-1"
+      path: "."
+      ref: HEAD
+      resolved-ref: "25e4fd272fdf40ed7fac6d0bd4ccf1f79abdf9da"
+      url: "https://github.com/enspyrco/tech_world_networking_types"
+    source: git
+    version: "0.0.0+1"
   term_glyph:
     dependency: transitive
     description:
