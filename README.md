@@ -22,3 +22,26 @@ You can use curl to test connecting (but you won't be able to send any data)
 ```sh
 curl -i -N -H "Connection: Upgrade" -H "Upgrade: websocket" -H "Host: localhost" -H "Origin: http://localhost" -H "Sec-WebSocket-Version: 13" -H "Sec-WebSocket-Key: SGVsbG8sIHdvcmxkIQ==" http://localhost:8080
 ```
+
+## Deploying to Cloud Run
+
+[Setup Workload Identity Federation for GitHub Actions](https://www.notion.so/enspyr-resources/Setup-Workload-Identity-Federation-for-GitHub-Actions-dea8dc31ff704efda562376047e7a965)
+
+[Build container image & deploy to Cloud Run in CI](https://www.notion.so/enspyr-resources/Build-container-image-deploy-to-Cloud-Run-in-CI-e99e4144cdf1460aad41a56aa5f45099)
+
+## Deploying to Compute Engine
+
+Create a VM
+
+```sh
+gcloud compute instances create-with-container tech-world-game-server-vm \
+  --container-image us-central1-docker.pkg.dev/adventures-in-tech-world-0/tech-world-game-server-repo/tech-world-game-server-image:latest \
+  --tags http-server
+```
+
+Add a firewall rule
+
+```sh
+gcloud compute firewall-rules create allow-http \                         
+ --allow tcp:8080 --target-tags http-server
+```
