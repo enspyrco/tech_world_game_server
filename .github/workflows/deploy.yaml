@@ -49,8 +49,8 @@ jobs:
         id: 'deploy'
         uses: 'google-github-actions/deploy-cloudrun@v2'
         with:
-          service: <project_name>-service
-          image: <location>-docker.pkg.dev/<project_id>/<project-name>-repo/<project_name>-image:latest
+          service: tech-world-game-server-service
+          image: us-central1-docker.pkg.dev/adventures-in-tech-world-0/tech-world-game-server-repo/tech-world-game-server-image:latest
 
       - name: 'Show url'
         run: 'echo "${{ steps.deploy.outputs.url }}"'
