@@ -30,7 +30,7 @@ class ClientConnectionsService {
         if (jsonData['type'] == ArrivalMessage.jsonType) {
           print(
               'server received: $jsonString \nAdding user & broadcasting other player list');
-          _addAndBroadcast(webSocket, NetworkUser.fromJson(jsonData));
+          _addAndBroadcast(webSocket, NetworkUser.fromJson(jsonData['user']));
         } else if (jsonData['type'] == OtherPlayersMessage.jsonType) {
           print('server received: $jsonString, broadcasting other player ids');
           _broadcastOtherPlayers();
