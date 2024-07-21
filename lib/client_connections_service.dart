@@ -6,7 +6,7 @@ import 'package:tech_world_networking_types/tech_world_networking_types.dart';
 /// All of the user connections are kept by the [ClientConnectionsService] object,
 /// which keeps a map of [WebSocketChannel]s to userIds.
 ///
-/// When a user connection is added or removed the [OtherPlayerIds] is broadcast.
+/// When a user connection is added or removed the [OtherPlayersMessage] is broadcast.
 class ClientConnectionsService {
   // We can constructor inject the message handler function used by shelf_web_socket
   ClientConnectionsService([Function(WebSocketChannel)? messageHandler]) {
@@ -31,9 +31,13 @@ class ClientConnectionsService {
           print(
               'server received: $jsonString \nAdding user & broadcasting other player list');
           _addAndBroadcast(webSocket, NetworkUser.fromJson(jsonData['user']));
-        } else if (jsonData['type'] == OtherPlayersMessage.jsonType) {
-          print('server received: $jsonString, broadcasting other player ids');
-          _broadcastOtherPlayers();
+        } else if (jsonData['type'] == DepartureMessage.jsonType) {
+          print(
+              'server received: $jsonString \nRemoving user & broadcasting other player list');
+          _removeAndBroadcast(webSocket);
+        } else if (jsonData['type'] == OtherUsersMessage.jsonType) {
+          print('server received: $jsonString, broadcasting other users info');
+          _broadcastOtherUsers();
         } else if (jsonData['type'] == PlayerPathMessage.jsonType) {
           print('server received: $jsonString, broadcasting');
           _broadcastPlayerPath(jsonData as Map<String, Object?>);
@@ -55,20 +59,20 @@ class ClientConnectionsService {
 
   void _addAndBroadcast(WebSocketChannel ws, NetworkUser user) {
     presenceMap[ws] = user;
-    _broadcastOtherPlayers();
+    _broadcastOtherUsers();
   }
 
   void _removeAndBroadcast(WebSocketChannel ws) {
     presenceMap.remove(ws);
-    _broadcastOtherPlayers();
+    _broadcastOtherUsers();
   }
 
-  void _broadcastOtherPlayers() {
+  void _broadcastOtherUsers() {
     for (final ws in presenceMap.keys) {
       // make the "other players" list for this player and send
       final users = presenceMap.values.toSet();
       users.remove(presenceMap[ws]!);
-      final message = jsonEncode(OtherPlayersMessage(users: users));
+      final message = jsonEncode(OtherUsersMessage(users: users));
       ws.sink.add(message);
     }
   }
