@@ -19,8 +19,8 @@ RUN dart compile exe bin/server.dart -o bin/server
 FROM gcr.io/distroless/cc
 COPY --from=build /app/bin/server /app/bin/server
 COPY --from=build /runtime/ /
-COPY cert.pem /app/
-COPY key.pem /app/
+COPY --from=build /app/bin/cert.pem /app/
+COPY --from=build /app/bin/key.pem /app/
 
 EXPOSE 8080
 
