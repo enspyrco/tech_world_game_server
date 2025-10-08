@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:shelf_web_socket/shelf_web_socket.dart';
 import 'package:tech_world_game_server/locator.dart';
@@ -12,7 +14,19 @@ void main() {
 
   var handler = webSocketHandler(clientConnectionsService.messageHandler);
 
-  shelf_io.serve(handler, _hostname, 8080).then((server) {
+  // Create a SecurityContext for HTTPS
+  final securityContext = SecurityContext()
+    ..useCertificateChain('cert.pem') // Path to your certificate
+    ..usePrivateKey('key.pem'); // Path to your private key
+
+  shelf_io
+      .serve(
+    handler,
+    _hostname,
+    8080,
+    securityContext: securityContext,
+  )
+      .then((server) {
     print('Serving at ws://${server.address.host}:${server.port}');
   });
 }
