@@ -15,12 +15,13 @@ RUN dart compile exe bin/server.dart -o bin/server
 
 # Build minimal serving image from AOT-compiled `/server` and required system
 # libraries and configuration files stored in `/runtime/` from the build stage.
-FROM scratch
-COPY --from=build /runtime/ /
-COPY --from=build /app/bin/server /app/bin/
-COPY --from=build /app/bin/cert.pem /app/cert.pem
-COPY --from=build /app/bin/key.pem /app/key.pem
 
-# Start server.
+FROM gcr.io/distroless/cc
+COPY --from=build /app/bin/server /app/bin/server
+COPY --from=build /runtime/ /
+COPY cert.pem /app/
+COPY key.pem /app/
+
 EXPOSE 8080
+
 ENTRYPOINT ["/app/bin/server"]
