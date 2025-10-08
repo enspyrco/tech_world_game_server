@@ -15,9 +15,11 @@ void main() {
   var handler = webSocketHandler(clientConnectionsService.messageHandler);
 
   // Create a SecurityContext for HTTPS
-  // final securityContext = SecurityContext()
-  //   ..useCertificateChain('cert.pem') // Path to your certificate
-  //   ..usePrivateKey('key.pem'); // Path to your private key
+  final securityContext = SecurityContext()
+    ..useCertificateChain(
+        '/etc/letsencrypt/live/adventures-in-tech.world/fullchain.pem') // Path to your certificate
+    ..usePrivateKey(
+        '/etc/letsencrypt/live/adventures-in-tech.world/privkey.pem'); // Path to your private key
 
   final port = int.parse(Platform.environment['PORT'] ?? '8080');
 
@@ -26,7 +28,7 @@ void main() {
     handler,
     _hostname,
     port,
-    // securityContext: securityContext,
+    securityContext: securityContext,
   )
       .then((server) {
     print('Serving at ws://${server.address.host}:${server.port}');

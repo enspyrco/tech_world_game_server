@@ -13,12 +13,6 @@ COPY . .
 RUN dart pub get --offline
 RUN dart compile exe bin/server.dart -o bin/server
 
-# Build minimal serving image from AOT-compiled `/server` and required system
-# libraries and configuration files stored in `/runtime/` from the build stage.
-# FROM scratch
-# COPY --from=build /runtime/ /
-# COPY --from=build /app/bin/server /app/bin/
-
 FROM gcr.io/distroless/cc
 COPY --from=build /runtime/ /
 COPY --from=build /app/bin/server /app/bin/
