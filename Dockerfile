@@ -18,6 +18,8 @@ RUN dart compile exe bin/server.dart -o bin/server
 FROM scratch
 COPY --from=build /runtime/ /
 COPY --from=build /app/bin/server /app/bin/
+COPY --from=build /app/bin/cert.pem /app/cert.pem
+COPY --from=build /app/bin/key.pem /app/key.pem
 
 # Start server.
 EXPOSE 8080
