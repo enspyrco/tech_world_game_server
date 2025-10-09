@@ -16,10 +16,8 @@ void main() {
 
   // Create a SecurityContext for HTTPS
   final securityContext = SecurityContext()
-    ..useCertificateChain(
-        '/etc/letsencrypt/live/adventures-in-tech.world/fullchain.pem') // Path to your certificate
-    ..usePrivateKey(
-        '/etc/letsencrypt/live/adventures-in-tech.world/privkey.pem'); // Path to your private key
+    ..useCertificateChain('/app/cert.pem')
+    ..usePrivateKey('/app/key.pem'); // Path to your private key
 
   final port = int.parse(Platform.environment['PORT'] ?? '8080');
 
