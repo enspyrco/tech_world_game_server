@@ -14,7 +14,7 @@ void main() {
 
   var handler = webSocketHandler(clientConnectionsService.messageHandler);
 
-  // Create a SecurityContext for HTTPS
+  // Create a SecurityContext for HTTPS/WSS
   final securityContext = SecurityContext()
     ..useCertificateChain('/app/cert.pem')
     ..usePrivateKey('/app/key.pem'); // Path to your private key
@@ -29,6 +29,6 @@ void main() {
     securityContext: securityContext,
   )
       .then((server) {
-    print('Serving at ws://${server.address.host}:${server.port}');
+    print('Serving at wss://${server.address.host}:${server.port}');
   });
 }
