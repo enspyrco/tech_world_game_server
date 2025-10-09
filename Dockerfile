@@ -21,4 +21,5 @@ COPY --from=build /app/bin/key.pem /app/
 
 # Start server.
 EXPOSE 8080
+EXPOSE 443
 ENTRYPOINT ["/app/bin/server"]
