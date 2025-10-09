@@ -19,13 +19,11 @@ void main() {
     ..useCertificateChain('/app/cert.pem')
     ..usePrivateKey('/app/key.pem'); // Path to your private key
 
-  final port = int.parse(Platform.environment['PORT'] ?? '8080');
-
   shelf_io
       .serve(
     handler,
     _hostname,
-    port,
+    443,
     securityContext: securityContext,
   )
       .then((server) {
