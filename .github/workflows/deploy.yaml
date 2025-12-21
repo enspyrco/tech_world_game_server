@@ -59,24 +59,24 @@ jobs:
             --zone=${{ env.VM_ZONE }} \
             --command="
               # Configure docker to use gcloud credentials (if not already done)
-              gcloud auth configure-docker us-central1-docker.pkg.dev --quiet
+              sudo gcloud auth configure-docker us-central1-docker.pkg.dev --quiet
 
               # Stop and remove existing container
-              docker stop tech-world-game-server 2>/dev/null || true
-              docker rm tech-world-game-server 2>/dev/null || true
+              sudo docker stop tech-world-game-server 2>/dev/null || true
+              sudo docker rm tech-world-game-server 2>/dev/null || true
 
               # Pull the latest image
-              docker pull ${{ env.IMAGE }}:latest
+              sudo docker pull ${{ env.IMAGE }}:latest
 
               # Run the new container
-              docker run -d \
+              sudo docker run -d \
                 --name tech-world-game-server \
                 --restart unless-stopped \
                 -p 443:443 \
                 ${{ env.IMAGE }}:latest
 
               # Clean up old images
-              docker image prune -f
+              sudo docker image prune -f
             "
 
       - name: Show deployment info
