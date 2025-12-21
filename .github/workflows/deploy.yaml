@@ -58,11 +58,16 @@ jobs:
           gcloud compute ssh ${{ env.VM_NAME }} \
             --zone=${{ env.VM_ZONE }} \
             --command="
-              # Configure docker to use gcloud credentials (if not already done)
+              # Configure docker to use gcloud credentials
               sudo gcloud auth configure-docker us-central1-docker.pkg.dev --quiet
 
-              # Stop and remove existing container
-              sudo docker stop tech-world-game-server 2>/dev/null || true
+              # Stop and remove ANY container using port 443
+              for container in \$(sudo docker ps -q --filter 'publish=443'); do
+                sudo docker stop \$container
+                sudo docker rm \$container
+              done
+
+              # Also remove our named container if it exists (might be in created/exited state)
               sudo docker rm tech-world-game-server 2>/dev/null || true
 
               # Pull the latest image
