@@ -107,4 +107,121 @@ void main() {
 
     await server.close();
   });
+
+  test('DepartureMessage removes client and broadcasts updated player list', () async {
+    final service = ClientConnectionsService();
+    final server = await shelf_io.serve(
+        webSocketHandler(service.messageHandler), 'localhost', 0);
+
+    final client1 = await WebSocket.connect('ws://localhost:${server.port}');
+    client1.add(
+      jsonEncode(
+        ArrivalMessage(NetworkUser(id: '1', displayName: 'name1')).toJson(),
+      ),
+    );
+
+    final client2 = await WebSocket.connect('ws://localhost:${server.port}');
+    client2.add(
+      jsonEncode(
+        ArrivalMessage(NetworkUser(id: '2', displayName: 'name2')).toJson(),
+      ),
+    );
+
+    // Wait for connections to be established
+    await Future.delayed(const Duration(milliseconds: 50));
+
+    // Client 2 sends departure message
+    client2.add(
+      jsonEncode(DepartureMessage('2').toJson()),
+    );
+
+    // Client 1 should receive: empty list, client2 joined, client2 left
+    expect(
+      client1,
+      emitsInOrder([
+        '{"type":"other_players","users":[]}',
+        '{"type":"other_players","users":[{"id":"2","displayName":"name2"}]}',
+        '{"type":"other_players","users":[]}',
+      ]),
+    );
+
+    await server.close();
+  });
+
+  test('client disconnect triggers removal and broadcast', () async {
+    final service = ClientConnectionsService();
+    final server = await shelf_io.serve(
+        webSocketHandler(service.messageHandler), 'localhost', 0);
+
+    final client1 = await WebSocket.connect('ws://localhost:${server.port}');
+    client1.add(
+      jsonEncode(
+        ArrivalMessage(NetworkUser(id: '1', displayName: 'name1')).toJson(),
+      ),
+    );
+
+    final client2 = await WebSocket.connect('ws://localhost:${server.port}');
+    client2.add(
+      jsonEncode(
+        ArrivalMessage(NetworkUser(id: '2', displayName: 'name2')).toJson(),
+      ),
+    );
+
+    // Wait for connections to be established
+    await Future.delayed(const Duration(milliseconds: 50));
+
+    // Client 2 disconnects abruptly
+    await client2.close();
+
+    // Client 1 should receive: empty list, client2 joined, client2 left
+    expect(
+      client1,
+      emitsInOrder([
+        '{"type":"other_players","users":[]}',
+        '{"type":"other_players","users":[{"id":"2","displayName":"name2"}]}',
+        '{"type":"other_players","users":[]}',
+      ]),
+    );
+
+    await server.close();
+  });
+
+  test('PlayerPathMessage is not sent back to sender', () async {
+    final service = ClientConnectionsService();
+    final server = await shelf_io.serve(
+        webSocketHandler(service.messageHandler), 'localhost', 0);
+
+    final client1 = await WebSocket.connect('ws://localhost:${server.port}');
+    client1.add(
+      jsonEncode(
+        ArrivalMessage(NetworkUser(id: '1', displayName: 'name1')).toJson(),
+      ),
+    );
+
+    // Wait for connection
+    await Future.delayed(const Duration(milliseconds: 50));
+
+    // Client 1 sends a path message
+    client1.add(
+      jsonEncode(
+        PlayerPathMessage(
+          userId: '1',
+          points: [Double2(x: 0, y: 0), Double2(x: 1, y: 1)],
+          directions: ['downRight'],
+        ),
+      ),
+    );
+
+    // Client 1 should only receive the initial other_players message,
+    // NOT their own path message echoed back
+    expect(
+      client1,
+      emits('{"type":"other_players","users":[]}'),
+    );
+
+    // Give time for any erroneous message to arrive
+    await Future.delayed(const Duration(milliseconds: 100));
+
+    await server.close();
+  });
 }
