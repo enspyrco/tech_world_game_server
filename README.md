@@ -1,6 +1,6 @@
 # tech_world_game_server
 
-*Using [shelf](https://pub.dev/packages/shelf) and [shelf_web_socket](https://pub.dev/packages/shelf_web_socket) for a serverless websocket server.*
+_Using [shelf](https://pub.dev/packages/shelf) and [shelf_web_socket](https://pub.dev/packages/shelf_web_socket) for a serverless websocket server._
 
 [Project Notes](https://enspyrco.notion.site/WS-Game-Server-c387081d4cc84c34b89bb92e1b78e48e)
 
@@ -23,30 +23,27 @@ You can use curl to test connecting (but you won't be able to send any data)
 curl -i -N -H "Connection: Upgrade" -H "Upgrade: websocket" -H "Host: localhost" -H "Origin: http://localhost" -H "Sec-WebSocket-Version: 13" -H "Sec-WebSocket-Key: SGVsbG8sIHdvcmxkIQ==" http://localhost:8080
 ```
 
-## CI
-
-### Deploying to Cloud Run
-
-I followed the steps in:
-
-- [Setup Workload Identity Federation for GitHub Actions](https://www.notion.so/enspyr-resources/Setup-Workload-Identity-Federation-for-GitHub-Actions-dea8dc31ff704efda562376047e7a965)
-- [Build container image & deploy to Cloud Run in CI](https://www.notion.so/enspyr-resources/Build-container-image-deploy-to-Cloud-Run-in-CI-e99e4144cdf1460aad41a56aa5f45099)
+## CI/CD
 
 ### Deploying to Compute Engine
 
-Currently the CI deploys to Cloud Run but one of the steps is uploading a container image
-artifact to the artifact registry.
+The CI/CD pipeline automatically deploys to a Compute Engine VM when you push a tagged commit.
 
-A Compute Engine instance can then be created via the console:
+**How it works:**
+1. Push a tagged commit (e.g., `git tag v1.0.0 && git push --tags`)
+2. GitHub Actions builds the Docker image and pushes to Artifact Registry
+3. The workflow SSHs into the VM and updates the running container
 
-- from the project overview click "Create a VM"
-- choose a region and zone
-- select a Machine Type select (e2-micro is enough for testing)
-- cick "Deploy Container"
-- Copy the container image url from deploy.yaml
-- click "Select"
-- Under Firewall select "Allow HTTP traffic" and "allow HTTPS traffic"
-- click "Create"
-- copy External IP and use in the client
+**VM Details:**
+- Instance: `instance-20251007-053239`
+- Zone: `us-central1-a`
+- Machine type: `e2-micro`
 
-There are incomplete notes at [Create a Compute Engine VM](https://www.notion.so/enspyr-resources/Create-a-Compute-Engine-VM-dc44c9b90ad64e3b8148d5ba1858fdac).
+**Required GCP Permissions for the GitHub Actions service account:**
+- `roles/artifactregistry.writer` - push images to Artifact Registry
+- `roles/compute.instanceAdmin.v1` - SSH into the VM
+- `roles/iap.tunnelResourceAccessor` - tunnel through IAP (if enabled)
+
+**Setup References:**
+- [Setup Workload Identity Federation for GitHub Actions](https://www.notion.so/enspyr-resources/Setup-Workload-Identity-Federation-for-GitHub-Actions-dea8dc31ff704efda562376047e7a965)
+- [Create a Compute Engine VM](https://www.notion.so/enspyr-resources/Create-a-Compute-Engine-VM-dc44c9b90ad64e3b8148d5ba1858fdac)
