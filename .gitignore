@@ -1,5 +1,30 @@
+# Dart/Pub
 # https://dart.dev/guides/libraries/private-files
-# Created by `dart pub`
 .dart_tool/
+.pub-cache/
+.pub/
+pubspec.lock
+doc/api/
 
+# Build outputs
+build/
+
+# IDE
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+
+# OS
 .DS_Store
+
+# Environment
+.env
+.env.*
+
+# SSL certificates (local dev)
+*.pem
+
+# Coverage
+coverage/
