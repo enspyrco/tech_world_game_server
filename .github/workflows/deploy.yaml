@@ -78,6 +78,8 @@ jobs:
                 --name tech-world-game-server \
                 --restart unless-stopped \
                 -p 443:443 \
+                -v /etc/letsencrypt/live/adventures-in-tech.world/fullchain.pem:/app/cert.pem:ro \
+                -v /etc/letsencrypt/live/adventures-in-tech.world/privkey.pem:/app/key.pem:ro \
                 ${{ env.IMAGE }}:latest
 
               # Clean up old images

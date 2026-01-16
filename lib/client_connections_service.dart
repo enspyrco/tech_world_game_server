@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:tech_world_networking_types/tech_world_networking_types.dart';
+import 'package:tech_world_game_server/bot_user.dart';
 
 /// All of the user connections are kept by the [ClientConnectionsService] object,
 /// which keeps a map of [WebSocketChannel]s to userIds.
@@ -60,6 +61,17 @@ class ClientConnectionsService {
   void _addAndBroadcast(WebSocketChannel ws, NetworkUser user) {
     presenceMap[ws] = user;
     _broadcastOtherUsers();
+    _sendBotPosition(ws);
+  }
+
+  /// Sends the bot's position to a newly connected player.
+  void _sendBotPosition(WebSocketChannel ws) {
+    final botPathMessage = PlayerPathMessage(
+      userId: botUser.id,
+      points: [botPosition],
+      directions: [],
+    );
+    ws.sink.add(jsonEncode(botPathMessage.toJson()));
   }
 
   void _removeAndBroadcast(WebSocketChannel ws) {
@@ -72,6 +84,7 @@ class ClientConnectionsService {
       // make the "other players" list for this player and send
       final users = presenceMap.values.toSet();
       users.remove(presenceMap[ws]!);
+      users.add(botUser); // Always include the bot
       final message = jsonEncode(OtherUsersMessage(users: users));
       ws.sink.add(message);
     }
