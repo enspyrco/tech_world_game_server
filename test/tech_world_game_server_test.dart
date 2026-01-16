@@ -7,6 +7,10 @@ import 'package:tech_world_game_server/client_connections_service.dart';
 import 'package:tech_world_networking_types/tech_world_networking_types.dart';
 import 'package:test/test.dart';
 
+// Bot user is always included in other_players messages
+const botUserJson = '{"id":"bot-claude","displayName":"Claude"}';
+const botPathJson = '{"type":"player_path","userId":"bot-claude","points":[{"x":200.0,"y":200.0}],"directions":[]}';
+
 void main() {
   test('Receiving ArrivalMessages sends OtherPlayersMessage to clients',
       () async {
@@ -25,8 +29,10 @@ void main() {
       client1,
       emitsInOrder(
         [
-          '{"type":"other_players","users":[]}',
-          '{"type":"other_players","users":[{"id":"2","displayName":"name2"}]}',
+          // First client gets bot only, then bot position, then client2 joins
+          '{"type":"other_players","users":[$botUserJson]}',
+          botPathJson,
+          '{"type":"other_players","users":[{"id":"2","displayName":"name2"},$botUserJson]}',
         ],
       ),
     );
@@ -44,7 +50,8 @@ void main() {
       client2,
       emitsInOrder(
         [
-          '{"type":"other_players","users":[{"id":"1","displayName":"name1"}]}',
+          '{"type":"other_players","users":[{"id":"1","displayName":"name1"},$botUserJson]}',
+          botPathJson,
         ],
       ),
     );
@@ -70,8 +77,9 @@ void main() {
       client1,
       emitsInOrder(
         [
-          '{"type":"other_players","users":[]}',
-          '{"type":"other_players","users":[{"id":"2","displayName":"name2"}]}',
+          '{"type":"other_players","users":[$botUserJson]}',
+          botPathJson,
+          '{"type":"other_players","users":[{"id":"2","displayName":"name2"},$botUserJson]}',
           '{"type":"player_path","userId":"2","points":[{"x":1.0,"y":1.0},{"x":1.0,"y":2.0}],"directions":["left","right"]}',
         ],
       ),
@@ -100,7 +108,8 @@ void main() {
       client2,
       emitsInOrder(
         [
-          '{"type":"other_players","users":[{"id":"1","displayName":"name1"}]}',
+          '{"type":"other_players","users":[{"id":"1","displayName":"name1"},$botUserJson]}',
+          botPathJson,
         ],
       ),
     );
@@ -135,13 +144,14 @@ void main() {
       jsonEncode(DepartureMessage('2').toJson()),
     );
 
-    // Client 1 should receive: empty list, client2 joined, client2 left
+    // Client 1 should receive: bot only, bot position, client2 joined, client2 left
     expect(
       client1,
       emitsInOrder([
-        '{"type":"other_players","users":[]}',
-        '{"type":"other_players","users":[{"id":"2","displayName":"name2"}]}',
-        '{"type":"other_players","users":[]}',
+        '{"type":"other_players","users":[$botUserJson]}',
+        botPathJson,
+        '{"type":"other_players","users":[{"id":"2","displayName":"name2"},$botUserJson]}',
+        '{"type":"other_players","users":[$botUserJson]}',
       ]),
     );
 
@@ -173,13 +183,14 @@ void main() {
     // Client 2 disconnects abruptly
     await client2.close();
 
-    // Client 1 should receive: empty list, client2 joined, client2 left
+    // Client 1 should receive: bot only, bot position, client2 joined, client2 left
     expect(
       client1,
       emitsInOrder([
-        '{"type":"other_players","users":[]}',
-        '{"type":"other_players","users":[{"id":"2","displayName":"name2"}]}',
-        '{"type":"other_players","users":[]}',
+        '{"type":"other_players","users":[$botUserJson]}',
+        botPathJson,
+        '{"type":"other_players","users":[{"id":"2","displayName":"name2"},$botUserJson]}',
+        '{"type":"other_players","users":[$botUserJson]}',
       ]),
     );
 
@@ -212,11 +223,14 @@ void main() {
       ),
     );
 
-    // Client 1 should only receive the initial other_players message,
+    // Client 1 should receive the initial other_players (with bot) and bot position,
     // NOT their own path message echoed back
     expect(
       client1,
-      emits('{"type":"other_players","users":[]}'),
+      emitsInOrder([
+        '{"type":"other_players","users":[$botUserJson]}',
+        botPathJson,
+      ]),
     );
 
     // Give time for any erroneous message to arrive
