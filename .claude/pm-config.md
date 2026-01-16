@@ -6,14 +6,14 @@
 
 ## Project Board
 ```
-PROJECT_ID=""
-STATUS_FIELD_ID=""
-STATUS_TODO=""
-STATUS_IN_PROGRESS=""
-STATUS_DONE=""
-PROJECT_NUMBER=""
+PROJECT_ID="PVT_kwDOBIOum84BMwmO"
+STATUS_FIELD_ID="PVTSSF_lADOBIOum84BMwmOzg7830E"
+STATUS_TODO="f75ad846"
+STATUS_IN_PROGRESS="47fc9ee4"
+STATUS_DONE="98236657"
+PROJECT_NUMBER="5"
 ```
-URL: (not yet configured)
+URL: https://github.com/orgs/enspyrco/projects/5
 
 ## Labels
 Standard labels:
