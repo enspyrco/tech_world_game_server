@@ -9,7 +9,8 @@ import 'package:test/test.dart';
 
 // Bot user is always included in other_players messages
 const botUserJson = '{"id":"bot-claude","displayName":"Claude"}';
-const botPathJson = '{"type":"player_path","userId":"bot-claude","points":[{"x":200.0,"y":200.0}],"directions":[]}';
+const testRoomId = 'l_room';
+const botPathJson = '{"type":"player_path","userId":"bot-claude","roomId":"$testRoomId","points":[{"x":200.0,"y":200.0}],"directions":[]}';
 
 void main() {
   test('Receiving ArrivalMessages sends OtherPlayersMessage to clients',
@@ -21,7 +22,7 @@ void main() {
     final client1 = await WebSocket.connect('ws://localhost:${server.port}');
     client1.add(
       jsonEncode(
-        ArrivalMessage(NetworkUser(id: '1', displayName: 'name1')).toJson(),
+        ArrivalMessage(NetworkUser(id: '1', displayName: 'name1'), roomId: testRoomId).toJson(),
       ),
     );
 
@@ -42,6 +43,7 @@ void main() {
       jsonEncode(
         ArrivalMessage(
           NetworkUser(id: '2', displayName: 'name2'),
+          roomId: testRoomId,
         ).toJson(),
       ),
     );
@@ -69,6 +71,7 @@ void main() {
       jsonEncode(
         ArrivalMessage(
           NetworkUser(id: '1', displayName: 'name1'),
+          roomId: testRoomId,
         ).toJson(),
       ),
     );
@@ -80,7 +83,7 @@ void main() {
           '{"type":"other_players","users":[$botUserJson]}',
           botPathJson,
           '{"type":"other_players","users":[{"id":"2","displayName":"name2"},$botUserJson]}',
-          '{"type":"player_path","userId":"2","points":[{"x":1.0,"y":1.0},{"x":1.0,"y":2.0}],"directions":["left","right"]}',
+          '{"type":"player_path","userId":"2","roomId":"$testRoomId","points":[{"x":1.0,"y":1.0},{"x":1.0,"y":2.0}],"directions":["left","right"]}',
         ],
       ),
     );
@@ -90,6 +93,7 @@ void main() {
       jsonEncode(
         ArrivalMessage(
           NetworkUser(id: '2', displayName: 'name2'),
+          roomId: testRoomId,
         ).toJson(),
       ),
     );
@@ -98,9 +102,10 @@ void main() {
       jsonEncode(
         PlayerPathMessage(
           userId: '2',
+          roomId: testRoomId,
           points: [Double2(x: 1, y: 1), Double2(x: 1, y: 2)],
           directions: ['left', 'right'],
-        ),
+        ).toJson(),
       ),
     );
 
@@ -125,14 +130,14 @@ void main() {
     final client1 = await WebSocket.connect('ws://localhost:${server.port}');
     client1.add(
       jsonEncode(
-        ArrivalMessage(NetworkUser(id: '1', displayName: 'name1')).toJson(),
+        ArrivalMessage(NetworkUser(id: '1', displayName: 'name1'), roomId: testRoomId).toJson(),
       ),
     );
 
     final client2 = await WebSocket.connect('ws://localhost:${server.port}');
     client2.add(
       jsonEncode(
-        ArrivalMessage(NetworkUser(id: '2', displayName: 'name2')).toJson(),
+        ArrivalMessage(NetworkUser(id: '2', displayName: 'name2'), roomId: testRoomId).toJson(),
       ),
     );
 
@@ -166,14 +171,14 @@ void main() {
     final client1 = await WebSocket.connect('ws://localhost:${server.port}');
     client1.add(
       jsonEncode(
-        ArrivalMessage(NetworkUser(id: '1', displayName: 'name1')).toJson(),
+        ArrivalMessage(NetworkUser(id: '1', displayName: 'name1'), roomId: testRoomId).toJson(),
       ),
     );
 
     final client2 = await WebSocket.connect('ws://localhost:${server.port}');
     client2.add(
       jsonEncode(
-        ArrivalMessage(NetworkUser(id: '2', displayName: 'name2')).toJson(),
+        ArrivalMessage(NetworkUser(id: '2', displayName: 'name2'), roomId: testRoomId).toJson(),
       ),
     );
 
@@ -205,7 +210,7 @@ void main() {
     final client1 = await WebSocket.connect('ws://localhost:${server.port}');
     client1.add(
       jsonEncode(
-        ArrivalMessage(NetworkUser(id: '1', displayName: 'name1')).toJson(),
+        ArrivalMessage(NetworkUser(id: '1', displayName: 'name1'), roomId: testRoomId).toJson(),
       ),
     );
 
@@ -217,9 +222,10 @@ void main() {
       jsonEncode(
         PlayerPathMessage(
           userId: '1',
+          roomId: testRoomId,
           points: [Double2(x: 0, y: 0), Double2(x: 1, y: 1)],
           directions: ['downRight'],
-        ),
+        ).toJson(),
       ),
     );
 
@@ -235,6 +241,45 @@ void main() {
 
     // Give time for any erroneous message to arrive
     await Future.delayed(const Duration(milliseconds: 100));
+
+    await server.close();
+  });
+
+  test('clients in different rooms do not see each other', () async {
+    final service = ClientConnectionsService();
+    final server = await shelf_io.serve(
+        webSocketHandler(service.messageHandler), 'localhost', 0);
+
+    final client1 = await WebSocket.connect('ws://localhost:${server.port}');
+    client1.add(
+      jsonEncode(
+        ArrivalMessage(NetworkUser(id: '1', displayName: 'name1'), roomId: 'room_a').toJson(),
+      ),
+    );
+
+    final client2 = await WebSocket.connect('ws://localhost:${server.port}');
+    client2.add(
+      jsonEncode(
+        ArrivalMessage(NetworkUser(id: '2', displayName: 'name2'), roomId: 'room_b').toJson(),
+      ),
+    );
+
+    // Each client should only see the bot in their room, not each other
+    expect(
+      client1,
+      emitsInOrder([
+        '{"type":"other_players","users":[$botUserJson]}',
+        '{"type":"player_path","userId":"bot-claude","roomId":"room_a","points":[{"x":200.0,"y":200.0}],"directions":[]}',
+      ]),
+    );
+
+    expect(
+      client2,
+      emitsInOrder([
+        '{"type":"other_players","users":[$botUserJson]}',
+        '{"type":"player_path","userId":"bot-claude","roomId":"room_b","points":[{"x":200.0,"y":200.0}],"directions":[]}',
+      ]),
+    );
 
     await server.close();
   });
